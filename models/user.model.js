@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 
 const { Schema, model } = mongoose;
-const { genSalt, hash } = bcrypt;
+const { genSalt, hash, compare } = bcrypt;
 
 const UserSchema = new Schema({
     name: {
@@ -17,12 +17,21 @@ const UserSchema = new Schema({
         type: String,
         required: true,
     },
+    created: {
+        type: Date,
+        default: Date.now,
+    },
+    updated: Date,
 });
 
-/* UserSchema.pre("save", async function (next) {
+UserSchema.pre("save", async function (next) {
     const salt = await genSalt();
     this.password = await hash(this.password, salt);
     next();
-}); */
+});
+
+UserSchema.methods.authenticate = async function (plainText) {
+    return compare(plainText, this.password);
+};
 
 export default model("User", UserSchema);

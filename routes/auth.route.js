@@ -1,8 +1,9 @@
-// import { Router } from "express";
-// import authCtrl from "../controllers/auth.controller.js";
+import { Router } from "express";
+import authCtrl from "../controllers/auth.controller.js";
 
-// const router = Router();
+const router = Router();
 
-// router.get("/auth/login", authCtrl.login);
+router.post("/auth/login", authCtrl.login);
+router.get("/auth/logout", authCtrl.logout);
 
-// export default router;
+export default router;

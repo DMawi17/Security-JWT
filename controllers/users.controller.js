@@ -24,26 +24,32 @@ const list = async (req, res) => {
 const userById = async (req, res, next, id) => {
     try {
         let user = await User.findById(id);
-        if (!user) res.status(400).send("User not found.");
+        if (!user) res.status(400).json({ error: "User not found." });
         req.profile = user;
         next();
     } catch (err) {
-        res.status(400).send("Couldn't retrieve user.");
+        res.status(400).json({
+            error: "Could not retrieve user",
+        });
     }
 };
 
 const read = (req, res) => {
+    req.profile.password = undefined;
+    // console.log(req.profile);
     return res.json(req.profile);
 };
 
 const update = async (req, res) => {
     try {
         let user = req.profile;
-        Object.assign(user, req.body);
+        user = Object.assign(user, req.body);
+        user.updated = Date.now();
         await user.save();
+        user.password = undefined;
         res.json(user);
     } catch (err) {
-        return res.status(400).send("Unable to update user");
+        return res.status(400).send({ error: "Unable to update user" });
     }
 };
 
@@ -51,9 +57,10 @@ const remove = async (req, res) => {
     try {
         let user = req.profile;
         let deletedUser = await user.remove();
+        deletedUser.password = undefined;
         res.json(deletedUser);
     } catch (err) {
-        return res.status(400).send("Unable to remove user");
+        return res.status(400).json({ error: "Unable to remove user" });
     }
 };
 
