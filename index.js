@@ -1,39 +1,24 @@
 import express from "express";
-import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
+import mongoose from "mongoose";
+import config from "./config/config.js";
+import userRoutes from "./routes/users.route.js";
+
+const { connect, connection } = mongoose;
 
 const app = express();
-dotenv.config();
+app.use(express.json());
 
-const port = process.env.PORT || 3000;
-const secret = /*Math.random() + */ process.env.JWT_SECRET;
-
-app.get("/token", (req, res) => {
-    const payload = { userId: 42, username: "Veera Cat", admin: "true" };
-    const options = { expiresIn: "1h" };
-
-    const token = jwt.sign(payload, secret, options);
-    res.send(token);
+app.use((req, res, next) => {
+    console.log(`${req.method} request @ ${req.path}`);
+    next();
 });
 
-const checkToken = (req, res, next) => {
-    const tokenRaw = req.headers.authorization;
-    if (!tokenRaw) res.status(401);
 
-    const tokenToCheck = tokenRaw.split(" ")[1];
-    if (!tokenToCheck) res.status(401);
+app.use("/", userRoutes);
 
-    jwt.verify(tokenToCheck, secret, (err, payload) => {
-        if (err) res.status(400).send(err.message);
-        req.profile = payload;
-        next();
-    });
-};
+connect(config.mongoUri);
+connection.on("connected", () => console.log("Connected to DB"));
 
-app.get("/secure", checkToken, (req, res) => {
-    res.send(`Access to ${req.profile.username} granted.`);
-});
-
-app.listen(port, () => {
-    console.log(`Server started on ${port}`);
+app.listen(config.port, () => {
+    console.log(`Server started on ${config.port}`);
 });
